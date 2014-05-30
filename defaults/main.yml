@@ -1,0 +1,16 @@
+---
+playframework_version: "2.2.3"
+playframework_install_path: "/opt"
+playframework_home_path: "{{playframework_install_path}}/play"
+playframework_apps_path: "/var/www/play"
+playframework_pid_path: "/var/run/play"
+playframework_user: "playframework"
+playframework_group: "playframework"
+playframework_default_listen_ip: "127.0.0.1"
+playframework_apps: []
+
+# Service states: started or stopped
+playframework_service_state: started
+
+# Service enabled on startup: yes or no
+playframework_service_enabled: yes

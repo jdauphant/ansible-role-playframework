@@ -1,0 +1,73 @@
+---
+- name: Ensure essential packages are installed
+  apt: pkg={{ item }}
+  with_items:
+    - build-essential
+    - python-dev
+    - python-setuptools
+    - unzip
+    - curl
+    - openjdk-7-jre
+    - openjdk-7-jdk
+
+- name: Ensure installation directory exist
+  file: path={{playframework_install_path}} state=directory
+  tags: ["packages","playframework"]
+
+- name: Download play framework
+  get_url: url={{playframework_url}} dest={{playframework_install_path}}/play-{{playframework_version}}.zip
+  tags: ["packages","playframework"]
+
+- name: Unarchive play framework
+  command: "unzip {{playframework_install_path}}/play-{{playframework_version}}.zip -d /opt creates={{playframework_install_path}}/play-{{playframework_version}}"
+  tags: ["packages","playframework"]
+
+- name: Ensure link are created
+  file: src={{item.src}} dest={{item.dest}} state=link
+  with_items:
+   - { src: '/opt/play-{{playframework_version}}', dest: '{{playframework_home_path}}' }
+   - { src: '{{playframework_home_path}}/play', dest: '/usr/local/bin/play' }
+  tags: ["packages","playframework"]
+
+- name: Ensure play is executable
+  file: dest={{item}} mode=755
+  with_items:
+    - "{{playframework_home_path}}/play"
+    - "{{playframework_home_path}}/framework/build"
+    - "{{playframework_home_path}}/framework/clean"
+    - "{{playframework_home_path}}/framework/cleanEverything"
+    - "{{playframework_home_path}}/framework/deployApiDocs"
+    - "{{playframework_home_path}}/framework/package"
+    - "{{playframework_home_path}}/framework/runtests"
+    - "{{playframework_home_path}}/framework/validatePullRequest"
+  tags: ["packages","playframework"]
+
+- name: Ensure group for playframework
+  group: name={{playframework_group}}
+  tags: ["configuration","playframework"]
+
+- name: Ensure user for playframework
+  user: name={{playframework_user}} group={{playframework_group}} createhome=no home={{playframework_apps_path}}
+  tags: ["configuration","playframework"]
+
+- name: Ensure needed directory are created and have good owner
+  file: dest={{item}} state=directory owner={{playframework_user}} group={{playframework_group}}
+  with_items:
+    - "{{playframework_install_path}}/play-{{playframework_version}}"
+    - "{{playframework_install_path}}/play-{{playframework_version}}/framework/sbt/boot" 
+    - "{{playframework_install_path}}/play-{{playframework_version}}/repository"   
+    - "{{playframework_install_path}}/play-{{playframework_version}}/repository/cache" 
+    - "{{playframework_apps_path}}"
+    - "{{playframework_pid_path}}"
+  tags: ["configuration","playframework"]
+
+- name: Ensure init.d is created for each app
+  template: src=playframework.init.d.j2 dest=/etc/init.d/play_{{item.name}} mode=755
+  tags: play
+  with_items: playframework_apps
+  tags: ["configuration","playframework"]
+
+- name: Ensure apps are running
+  service: name="play_{{item.name}}" state={{playframework_service_state}} enabled={{playframework_service_enabled}}
+  with_items: playframework_apps
+  tags: ["service","playframework"]

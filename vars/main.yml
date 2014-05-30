@@ -1,0 +1,2 @@
+---
+playframework_url: "http://downloads.typesafe.com/play/{{playframework_version}}/play-{{playframework_version}}.zip"

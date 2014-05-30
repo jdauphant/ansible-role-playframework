@@ -1,0 +1,65 @@
+#!/bin/sh
+# {{ ansible_managed }}
+### BEGIN INIT INFO
+# Provides:          playframework_{{item.name}}
+# Required-Start:    $local_fs $remote_fs $network $syslog
+# Required-Stop:     $local_fs $remote_fs $network $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Start/Stop playframework_{{item.name}}
+### END INIT INFO
+#
+#source some script files in order to set and export environmental variables
+#as well as add the appropriate executables to $PATH
+set -x
+
+PLAYFRAMEWORK_HOME='{{playframework_home_path}}'
+APPLICATION_PATH='{{item.path | default(playframework_apps_path + "/" + item.name)}}'
+export PIDFILE='{{playframework_pid_path}}/{{item.name}}.pid'
+USER={{playframework_user}}
+GROUP={{playframework_group}}
+ 
+start() {
+         echo "Starting playframework_{{item.name}}"
+        START_CMD="${PLAYFRAMEWORK_HOME}/play start -Dpidfile.path=${PIDFILE} -Dhttp.address={{item.listen_ip | default(playframework_default_listen_ip)}}  -Dhttp.port={{item.listen_ip | default("9000")}} --%production"
+        start-stop-daemon --chdir ${APPLICATION_PATH} --start -p "${PIDFILE}" --quiet --background --chuid ${USER}:${GROUP} --exec /bin/bash -- ${START_CMD}
+        RETVAL=$?
+}
+stop() {
+     	echo "Stopping playframework_{{item.name}}"
+        start-stop-daemon -K -p "${PIDFILE}" -u "${USER}" -R 30
+        RETVAL=$?
+}
+status() {
+        test -f $PIDFILE
+        RETVAL=$?
+        if [ $RETVAL -eq 0 ]; then
+                echo play is running as pid `cat ${PIDFILE}`
+        else
+                echo play is not running
+        fi
+}
+
+case "$1" in
+    start)
+        start
+    ;;
+    stop)
+      	stop
+    ;;
+    restart)
+    	stop
+    	sleep 5
+    	start
+    ;;
+    status)
+    	status
+   	;;
+    *)
+        echo "Usage: /etc/init.d/playframework_{{item.name}} {start|stop|restart|status}"
+        exit 1
+    ;;
+esac
+ 
+exit 0
+

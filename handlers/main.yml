@@ -1,0 +1,7 @@
+---
+- name: restart playframework
+  service: name=playframework state=restarted
+
+- name: reload playframework
+  service: name=playframework state=reloaded
+
