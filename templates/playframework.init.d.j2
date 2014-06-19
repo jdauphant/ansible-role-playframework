@@ -14,15 +14,14 @@
 set -x
 
 PLAYFRAMEWORK_HOME='{{playframework_home_path}}'
-APPLICATION_PATH='{{item.path | default(playframework_apps_path + "/" + item.name)}}'
+APPLICATION_PATH='{{item.installed_path | default(playframework_apps_path + "/" + item.name)}}'
 export PIDFILE='{{playframework_pid_path}}/{{item.name}}.pid'
 USER={{playframework_user}}
-GROUP={{playframework_group}}
- 
+RETVAL=1
 start() {
          echo "Starting playframework_{{item.name}}"
-        START_CMD="${PLAYFRAMEWORK_HOME}/play start -Dpidfile.path=${PIDFILE} -Dhttp.address={{item.listen_ip | default(playframework_default_listen_ip)}}  -Dhttp.port={{item.listen_ip | default("9000")}} --%production"
-        start-stop-daemon --chdir ${APPLICATION_PATH} --start -p "${PIDFILE}" --quiet --background --chuid ${USER}:${GROUP} --exec /bin/bash -- ${START_CMD}
+        START_CMD="${PLAYFRAMEWORK_HOME}/play \"start -Dpidfile.path=${PIDFILE} -Dhttp.address={{item.listen_ip | default(playframework_default_listen_ip)}}  -Dhttp.port={{item.port | default(playframework_default_listen_port)}} {{item.options|default('')}} \" --%production"
+        start-stop-daemon --chdir ${APPLICATION_PATH} --start -p "${PIDFILE}" --quiet --background --chuid ${USER} --exec /bin/bash -- -c "${START_CMD} >> {{playframework_log_path}}/{{item.name}}.log 2>&1"
         RETVAL=$?
 }
 stop() {
@@ -61,5 +60,5 @@ case "$1" in
     ;;
 esac
  
-exit 0
+exit $RETVAL
 
