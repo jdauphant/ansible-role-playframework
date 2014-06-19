@@ -59,6 +59,20 @@
     - "{{playframework_install_path}}/play-{{playframework_version}}/repository/cache" 
     - "{{playframework_apps_path}}"
     - "{{playframework_pid_path}}"
+    - "{{playframework_log_path}}"
+  tags: ["configuration","playframework"]
+
+
+- name: Copy play application
+  copy: src={{item.path}} dest={{playframework_apps_path}}
+  when: item.path is defined
+  with_items: playframework_apps
+  tags: ["configuration","playframework"]
+
+- name: Ensure apps have good owner/group
+  file: dest={{playframework_apps_path}} state=directory owner={{playframework_user}} group={{playframework_group}} recurse=yes
+  when: item.path is defined
+  with_items: playframework_apps
   tags: ["configuration","playframework"]
 
 - name: Ensure init.d is created for each app

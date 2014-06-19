@@ -4,9 +4,11 @@ playframework_install_path: "/opt"
 playframework_home_path: "{{playframework_install_path}}/play"
 playframework_apps_path: "/var/www/play"
 playframework_pid_path: "/var/run/play"
+playframework_log_path: "/var/log/play"
 playframework_user: "playframework"
 playframework_group: "playframework"
 playframework_default_listen_ip: "127.0.0.1"
+playframework_default_listen_port: "9000"
 playframework_apps: []
 
 # Service states: started or stopped
