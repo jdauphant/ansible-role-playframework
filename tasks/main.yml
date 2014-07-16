@@ -44,10 +44,12 @@
 
 - name: Ensure group for playframework
   group: name={{playframework_group}}
+  notify: restart playframework
   tags: ["configuration","playframework"]
 
 - name: Ensure user for playframework
   user: name={{playframework_user}} group={{playframework_group}} createhome=no home={{playframework_apps_path}}
+  notify: restart playframework
   tags: ["configuration","playframework"]
 
 - name: Ensure needed directory are created and have good owner
@@ -60,6 +62,7 @@
     - "{{playframework_apps_path}}"
     - "{{playframework_pid_path}}"
     - "{{playframework_log_path}}"
+  notify: restart playframework
   tags: ["configuration","playframework"]
 
 
@@ -67,6 +70,7 @@
   copy: src={{item.path}} dest={{playframework_apps_path}}
   when: item.path is defined
   with_items: playframework_apps
+  notify: restart playframework
   tags: ["configuration","playframework"]
 
 - name: Ensure apps have good owner/group
@@ -79,6 +83,7 @@
   template: src=playframework.init.d.j2 dest=/etc/init.d/play_{{item.name}} mode=755
   tags: play
   with_items: playframework_apps
+  notify: restart playframework
   tags: ["configuration","playframework"]
 
 - name: Ensure apps are running

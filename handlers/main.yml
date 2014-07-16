@@ -1,7 +1,5 @@
 ---
 - name: restart playframework
-  service: name=playframework state=restarted
-
-- name: reload playframework
-  service: name=playframework state=reloaded
+  service: name="play_{{item.name}}" state=restarted
+  with_items: playframework_apps
 
