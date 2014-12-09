@@ -1,6 +1,8 @@
 ansible-role-playframework
 ==========================
 
+# Warning : this role don't support play 2.3
+
 Ansible role to manage Play Framework
 
 Example :
