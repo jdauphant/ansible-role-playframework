@@ -18,8 +18,15 @@ APPLICATION_PATH='{{item.installed_path | default(playframework_apps_path + "/" 
 export PIDFILE='{{playframework_pid_path}}/{{item.name}}.pid'
 USER={{playframework_user}}
 RETVAL=1
+check_pid_path() {
+		if [ ! -d {{playframework_pid_path}} ]; then
+			mkdir {{playframework_pid_path}}
+			chown {{playframework_user}}:{{playframework_group}} {{playframework_pid_path}}
+		fi
+}
 start() {
-         echo "Starting playframework_{{item.name}}"
+        echo "Starting playframework_{{item.name}}"
+		check_pid_path
         START_CMD="${PLAYFRAMEWORK_HOME}/play \"start -Dpidfile.path=${PIDFILE} -Dhttp.address={{item.listen_ip | default(playframework_default_listen_ip)}}  -Dhttp.port={{item.port | default(playframework_default_listen_port)}} {{item.options|default('')}} \" --%production"
         start-stop-daemon --chdir ${APPLICATION_PATH} --start -p "${PIDFILE}" --quiet --background --chuid ${USER} --exec /bin/bash -- -c "${START_CMD} >> {{playframework_log_path}}/{{item.name}}.log 2>&1"
         RETVAL=$?
