@@ -9,6 +9,7 @@
     - curl
     - openjdk-7-jre
     - openjdk-7-jdk
+    - git
 
 - name: Ensure installation directory exist
   file: path={{playframework_install_path}} state=directory
@@ -66,27 +67,35 @@
   tags: ["configuration","playframework"]
 
 
-- name: Copy play application
+- name: Copy play application (folder mode)
   copy: src={{item.path}} dest={{playframework_apps_path}}
-  when: item.path is defined
+  when: item.path is defined and (item.type is not defined or item.type == "folder")
   with_items: playframework_apps
+  sudo_user: "{{playframework_user}}"
   notify: restart playframework
-  tags: ["configuration","playframework"]
+  tags: ["configuration","playframework", "deploy"]
+
+- name: Copy play application (git mode)
+  git: repo={{item.path}} dest={{playframework_apps_path}}/{{item.name}}  version={{item.version| default("HEAD")}} recursive={{playframework_git_recursive}}
+  when: item.path is defined and item.type is defined and item.type == "git"
+  with_items: playframework_apps 
+  sudo_user: "{{playframework_user}}"
+  notify: restart playframework
+  tags: ["configuration","playframework", "deploy"]
+
 
 - name: Ensure apps have good owner/group
   file: dest={{playframework_apps_path}} state=directory owner={{playframework_user}} group={{playframework_group}} recurse=yes
-  when: item.path is defined
-  with_items: playframework_apps
-  tags: ["configuration","playframework"]
+  tags: ["configuration","playframework", "deploy"]
 
 - name: Ensure init.d is created for each app
   template: src=playframework.init.d.j2 dest=/etc/init.d/play_{{item.name}} mode=755
   tags: play
   with_items: playframework_apps
   notify: restart playframework
-  tags: ["configuration","playframework"]
+  tags: ["configuration","playframework", "deploy"]
 
 - name: Ensure apps are running
   service: name="play_{{item.name}}" state={{playframework_service_state}} enabled={{playframework_service_enabled}}
   with_items: playframework_apps
-  tags: ["service","playframework"]
+  tags: ["service","playframework", "deploy"]

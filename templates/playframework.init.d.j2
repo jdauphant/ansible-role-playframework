@@ -13,14 +13,14 @@
 #as well as add the appropriate executables to $PATH
 set -x
 
-PLAYFRAMEWORK_HOME='{{playframework_home_path}}'
+LAUNCHER='{{playframework_launcher_path}}'
 APPLICATION_PATH='{{item.installed_path | default(playframework_apps_path + "/" + item.name)}}'
 export PIDFILE='{{playframework_pid_path}}/{{item.name}}.pid'
 USER={{playframework_user}}
 RETVAL=1
 start() {
          echo "Starting playframework_{{item.name}}"
-        START_CMD="${PLAYFRAMEWORK_HOME}/play \"start -Dpidfile.path=${PIDFILE} -Dhttp.address={{item.listen_ip | default(playframework_default_listen_ip)}}  -Dhttp.port={{item.port | default(playframework_default_listen_port)}} {{item.options|default('')}} \" --%production"
+        START_CMD="${LAUNCHER} \"start -Dhttp.address={{item.listen_ip | default(playframework_default_listen_ip)}}  -Dhttp.port={{item.port | default(playframework_default_listen_port)}} {{item.options|default('')}} \""
         start-stop-daemon --chdir ${APPLICATION_PATH} --start -p "${PIDFILE}" --quiet --background --chuid ${USER} --exec /bin/bash -- -c "${START_CMD} >> {{playframework_log_path}}/{{item.name}}.log 2>&1"
         RETVAL=$?
 }

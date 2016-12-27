@@ -10,6 +10,8 @@ playframework_group: "playframework"
 playframework_default_listen_ip: "127.0.0.1"
 playframework_default_listen_port: "9000"
 playframework_apps: []
+playframework_launcher_path: "{{playframework_home_path}}/play"
+playframework_git_recursive: "yes"
 
 # Service states: started or stopped
 playframework_service_state: started
